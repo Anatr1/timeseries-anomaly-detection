@@ -1,9 +1,16 @@
 import time
 from sklearn.model_selection import train_test_split
+import tensorflow as tf
 import tsfel
 import pandas as pd
 import warnings
 import os
+
+from sklearn import preprocessing
+from sklearn.svm import LinearSVC
+from sklearn.model_selection import train_test_split
+from sklearn.feature_selection import SelectFromModel
+from sklearn.feature_selection import VarianceThreshold
 
 def get_df_action(filepaths_csv, filepaths_meta, action2int=None, delimiter=";"):
     # Load dataframes
@@ -178,3 +185,38 @@ def get_train_test_data_df(df_action, df_meta, action2int, return_df_not_split=F
         return df_train, df_test
     else:
         return X_train, y_train, X_test, y_test
+
+def prepare_data_for_tf(X_train, y_train, X_test):
+    # Normalise features
+    scaler = preprocessing.StandardScaler()
+    scaler.fit(X_train)
+    X_train = pd.DataFrame(scaler.transform(X_train), columns=X_train.columns)
+
+    # Remove zero-variance features
+    selector_variance = VarianceThreshold()
+    selector_variance.fit(X_train)
+    X_train = pd.DataFrame(selector_variance.transform(X_train),
+                            columns=X_train.columns.values[selector_variance.get_support()])
+
+    # Remove highly correlated features
+    corr_features = tsfel.correlated_features(X_train,
+                                            threshold=0.95)
+    X_train.drop(corr_features, inplace=True, axis=1)
+
+    # Lasso selector
+    lsvc = LinearSVC(C=0.01, penalty="l1", dual=False).fit(X_train, y_train)
+    lasso = SelectFromModel(lsvc, prefit=True)
+    selected_features = X_train.columns.values[lasso.get_support()]
+    X_train = X_train[selected_features].copy()
+
+    # Labels
+    num_classes = len(set(y_train))
+    y_train_categorical = tf.keras.utils.to_categorical(y_train, num_classes=num_classes)
+
+    # Test
+    X_test = pd.DataFrame(selector_variance.transform(scaler.transform(X_test)),
+                        columns=X_test.columns.values[selector_variance.get_support()])
+    X_test.drop(corr_features, inplace=True, axis=1)
+    X_test = X_test[selected_features].copy()
+    
+    return X_train, y_train_categorical, X_test
