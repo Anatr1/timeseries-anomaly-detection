@@ -2,7 +2,7 @@ import os
 import tensorflow as tf
 import keras_tuner as kt
 
-class MLPClassifier:
+class BayesianMLPClassifier:
     def __init__(self, input_shape, num_classes, max_epochs=50, output_dir='./models'):
         self.input_shape = input_shape
         self.num_classes = num_classes
