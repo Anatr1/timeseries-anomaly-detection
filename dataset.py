@@ -154,6 +154,9 @@ def load_data(PATH, frequency):
         filepath_csv = [os.path.join(PATH, f"rec{r}_20220811_rbtc_{frequency}s.csv") for r in [0, 2, 3, 4]]
         filepath_metadata = [os.path.join(PATH, f"rec{r}_20220811_rbtc_{frequency}s.metadata") for r in [0, 2, 3, 4]]
     else:
+        collisions = pd.read_excel(os.path.join(PATH, "20220811_collisions_timestamp.xlsx"))
+        collisions_init = collisions[collisions['Inizio/fine'] == "i"].Timestamp - pd.to_timedelta([2] * len(collisions[collisions['Inizio/fine'] == "i"].Timestamp), 'h')
+        # FIXME: end then is not used ????
         filepath_csv = [os.path.join(PATH, f"rec{r}_collision_20220811_rbtc_{frequency}s.csv") for r in [1, 5]]
         filepath_metadata = [os.path.join(PATH, f"rec{r}_collision_20220811_rbtc_{frequency}s.metadata") for r in [1, 5]]
         
