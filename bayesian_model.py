@@ -3,7 +3,7 @@ import tensorflow as tf
 import keras_tuner as kt
 
 class BayesianMLPClassifier:
-    def __init__(self, input_shape, num_classes, max_epochs=50, output_dir='./models'):
+    def __init__(self, input_shape, num_classes, max_epochs=50, output_dir='./models_output'):
         self.input_shape = input_shape
         self.num_classes = num_classes
         self.output_dir = output_dir
@@ -47,8 +47,8 @@ class BayesianMLPClassifier:
             objective='accuracy',
             max_epochs=self.max_epochs,
             factor=3,
-            directory=os.path.join(self.output_dir, "keras_tuner"),
-            project_name="keras_tuner_prj"
+            directory=os.path.join(self.output_dir, "keras_tuner_bmlp"),
+            project_name="keras_tuner_bmlp_prj"
         )
 
     def search(self, X_train, y_train):
