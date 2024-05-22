@@ -2,16 +2,18 @@ import os
 import tensorflow as tf
 import keras_tuner as kt
 import matplotlib.pyplot as plt
+from sklearn.metrics import accuracy_score
 
-class Autoencoder:
-    def __init__(self, input_shape, max_epochs=50, output_dir='./models_output'):
+class AutoencoderClassifier:
+    def __init__(self, input_shape, num_classes, max_epochs=50, output_dir='./models_output'):
         self.input_shape = input_shape
+        self.num_classes = num_classes
         self.output_dir = output_dir
         self.max_epochs = max_epochs
         self.tuner = None
         self.model = None
         
-        print(f"Autoencoder classifier n2")
+        print("Autoencoder classifier initialized")
         
         try:
             os.makedirs(output_dir)
@@ -38,11 +40,17 @@ class Autoencoder:
                 units=hp.Int('units_' + str(i), 32, 256, 32),
                 activation='relu'
             ))
-        
+
+        # Output layer for reconstruction
         model.add(tf.keras.layers.Dense(self.input_shape[0], activation='sigmoid'))
+        
+        # Classifier head
+        model.add(tf.keras.layers.Dense(self.num_classes, activation='softmax'))  # Classification layer
+        
         model.compile(optimizer=tf.keras.optimizers.Adam(
             hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])),
-            loss='mse'
+            loss='sparse_categorical_crossentropy',  # Classification loss
+            metrics=['accuracy']  # Track accuracy during training
         )
         model.summary()
         return model
@@ -51,19 +59,20 @@ class Autoencoder:
         self.tuner = kt.Hyperband(
             self.build_model,
             overwrite=True,
-            objective='val_loss',
+            objective='val_accuracy',  # Optimize for validation accuracy
             max_epochs=self.max_epochs,
             factor=3,
             directory=os.path.join(self.output_dir, "keras_tuner_autoencoder"),
             project_name="keras_tuner_autoencoder_prj"
         )
     
-    def search(self, X_train):
+    def search(self, X_train, y_train):
         early_stopping = tf.keras.callbacks.EarlyStopping(
-            monitor='val_loss',
-            patience=15)
+            monitor='val_accuracy',
+            patience=15
+        )
         
-        self.tuner.search(X_train, X_train, epochs=self.max_epochs, validation_split=0.2,
+        self.tuner.search(X_train, y_train, epochs=self.max_epochs, validation_split=0.2,
                           callbacks=[early_stopping,
                                      tf.keras.callbacks.TensorBoard(log_dir=os.path.join(self.output_dir, "/tmp/tb_logs"))])
     
@@ -84,3 +93,11 @@ class Autoencoder:
         plt.show()
         
         return reconstruction_error.numpy()
+    
+    def predict(self, X_test):
+        if self.model is None:
+            raise Exception("Model is not trained yet. Call the search method to train the model.")
+        y_pred_proba = self.model.predict(X_test)
+        return y_pred_proba
+
+
