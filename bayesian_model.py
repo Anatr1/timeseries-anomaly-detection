@@ -37,7 +37,7 @@ class BayesianMLPClassifier:
             optimizer=tf.keras.optimizers.Adam(learning_rate=hp_learning_rate),
             metrics=['accuracy']
         )
-        
+        model.summary()
         return model
 
     def setup_tuner(self):

@@ -38,6 +38,9 @@ class CNNClassifier:
                 hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])),
             loss='categorical_crossentropy',
             metrics=['accuracy'])
+
+        model.summary()
+        
         return model
     
     def setup_tuner(self):
