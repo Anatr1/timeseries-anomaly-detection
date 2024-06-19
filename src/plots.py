@@ -1,6 +1,8 @@
 import seaborn as sns
 import numpy as np
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+import plotly.express as px
 from sklearn.metrics import confusion_matrix
 
 
@@ -70,3 +72,56 @@ def plot_uncertainty(uncertainties, title):
     fig.suptitle(title, fontsize=20)
     plt.tight_layout()
     plt.show()
+    
+def plot_signals(df, df_action):
+    fig = go.Figure()
+    signals = [
+    "sensor_id1_AngY",
+    "sensor_id2_AngX",
+    "sensor_id5_AngY",
+    "sensor_id4_AccZ",
+    "sensor_id4_AngX",
+    "machine_nameKuka Robot_power"]
+
+    start = df.index[9000]
+    df_reduced = df.loc[start:]
+    duration = 120  # seconds
+    time_delta = df_reduced.index - start
+    df_interval = df_reduced[time_delta.total_seconds() <= duration]
+    j = 0
+
+    # Leveraging plotly express
+    n_colors = len(signals)
+    colors = px.colors.sample_colorscale("greys", [n/(n_colors -1) for n in range(n_colors)])  # From continuous colormap
+    colors = px.colors.qualitative.Set2  # From discrete colormap, see https://plotly.com/python/discrete-color/
+    df_signals = df_interval[signals].select_dtypes(['number'])
+    df_signals = df_signals / df_signals.max()
+    fig = px.line(df_signals, x=df_signals.index, y=df_signals.columns, color_discrete_sequence=colors)
+
+    # Leveraging plotly graph object
+    colors_action = px.colors.qualitative.Antique
+    j = 0
+    for action in df_action.loc[df_interval.index].action.unique():
+        df_action_interval = df_action.loc[df_interval.index]
+        df_action_single_action = df_action_interval[df_action_interval['action'] == action]
+        fig.add_trace(go.Scatter(
+            x=df_action_single_action.index,
+            y=[-0.3] * len(df_action_single_action.index),
+            line_shape="hv",
+            line=dict(color=colors_action[j], width=2.5),
+            name=action))
+        j += 1
+
+
+    fig.update_layout(
+    title="Some signals",
+    xaxis_title="Time",
+    yaxis_title="",
+    legend_title="Legend",
+    font=dict(
+        family="Courier New, monospace",
+        size=12,
+        color="Black"
+    )
+    )
+    fig.show()
