@@ -73,7 +73,7 @@ def plot_uncertainty(uncertainties, title):
     plt.tight_layout()
     plt.show()
     
-def plot_signals(df, df_action):
+def plot_signals(df, df_action, title="Some signals", saveplot=False):
     fig = go.Figure()
     signals = [
     "sensor_id1_AngY",
@@ -85,7 +85,7 @@ def plot_signals(df, df_action):
 
     start = df.index[9000]
     df_reduced = df.loc[start:]
-    duration = 120  # seconds
+    duration = 3600 * 3  # seconds
     time_delta = df_reduced.index - start
     df_interval = df_reduced[time_delta.total_seconds() <= duration]
     j = 0
@@ -108,13 +108,13 @@ def plot_signals(df, df_action):
             x=df_action_single_action.index,
             y=[-0.3] * len(df_action_single_action.index),
             line_shape="hv",
-            line=dict(color=colors_action[j], width=2.5),
+            line=dict(color=colors_action[j % len(colors_action)], width=2.5),
             name=action))
         j += 1
 
 
     fig.update_layout(
-    title="Some signals",
+    title=title,
     xaxis_title="Time",
     yaxis_title="",
     legend_title="Legend",
@@ -125,3 +125,8 @@ def plot_signals(df, df_action):
     )
     )
     fig.show()
+    
+    if saveplot:
+        fig.write_html(f"./plots/{title}.html")
+        #fig.write_image(f"./plots/{title}.png")
+        print(f"Plot saved in ./plots/{title}.html and ../plots/{title}.png")
