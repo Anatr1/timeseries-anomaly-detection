@@ -127,6 +127,6 @@ def plot_signals(df, df_action, title="Some signals", saveplot=False):
     fig.show()
     
     if saveplot:
-        fig.write_html(f"./plots/{title}.html")
-        #fig.write_image(f"./plots/{title}.png")
-        print(f"Plot saved in ./plots/{title}.html and ../plots/{title}.png")
+        fig.write_html(f"../plots/{title}.html")
+        #fig.write_image(f"../plots/{title}.png")
+        print(f"Plot saved in ../plots/{title}.html and ../plots/{title}.png")
