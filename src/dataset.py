@@ -5,12 +5,21 @@ import tsfel
 import pandas as pd
 import warnings
 import os
+import numpy as np
 
 from sklearn import preprocessing
 from sklearn.svm import LinearSVC
 from sklearn.model_selection import train_test_split
 from sklearn.feature_selection import SelectFromModel
 from sklearn.feature_selection import VarianceThreshold
+
+def get_train_test_split(data_path, data_type='npz', test_size=0.2, shuffle=False):
+    data = np.load(data_path)
+    if data_type == 'npz':
+        data = data[data.files[0]]
+    labels = data[:, -1]
+    features = data[:, :-1]
+    return train_test_split(features, labels, test_size=test_size, shuffle=shuffle)
 
 def get_df_action(filepaths_csv, filepaths_meta, action2int=None, delimiter=";"):
     # Load dataframes
@@ -223,3 +232,69 @@ def prepare_data_for_tf(X_train, y_train, X_test):
     X_test = X_test[selected_features].copy()
     
     return X_train, y_train_categorical, X_test
+
+def get_train_test_data(df_features, df_features_collision, full_normal=True):
+    df_features.isnull().values.any()
+    #df_features_nonan = df_features.drop((df_features.columns[df_features.isna().any()].tolist()), axis=1)
+    df_features_nonan = df_features.fillna(0)
+    df_features_collision_nonan = df_features_collision.fillna(0)
+
+    # I normally want to train on the whole normal dataset
+    if not full_normal:
+        df_train, df_test = train_test_split(df_features_nonan)
+    else:
+        df_train = df_features_nonan
+        df_test = df_features_collision_nonan
+        
+    X_train = df_train.drop(["label", "start", "end"], axis=1)
+    y_train = df_train["label"]
+    X_test = df_test.drop(["label", "start", "end"], axis=1)
+    y_test = df_test["label"]
+
+    print(f"X_train shape: {X_train.shape}")
+    print(f"y_train shape: {y_train.shape}")
+    print(f"X_test shape: {X_test.shape}")
+    print(f"y_test shape: {y_test.shape}")
+
+    # Normalize features
+    scaler = preprocessing.StandardScaler()
+    scaler.fit(X_train)
+    X_train = pd.DataFrame(scaler.transform(X_train), columns=X_train.columns, index=X_train.index)
+
+    # Remove zero-variance features
+    selector_variance = VarianceThreshold()
+    selector_variance.fit(X_train)
+    X_train = pd.DataFrame(selector_variance.transform(X_train),
+                            columns=X_train.columns.values[selector_variance.get_support()])
+
+    # Remove highly correlated features
+    corr_features = tsfel.correlated_features(X_train,
+                                            threshold=0.95)
+    X_train.drop(corr_features, inplace=True, axis=1)
+
+    # Lasso selector
+    lsvc = LinearSVC(C=0.01, penalty="l1", dual=False).fit(X_train, y_train)
+    lasso = SelectFromModel(lsvc, prefit=True)
+    selected_features = X_train.columns.values[lasso.get_support()]
+    X_train = X_train[selected_features].copy()
+
+    # Labels
+    num_classes = len(set(y_train))
+    y_train_categorical = tf.keras.utils.to_categorical(y_train, num_classes=num_classes)
+
+    # Test
+    X_test = pd.DataFrame(selector_variance.transform(scaler.transform(X_test)),
+                        columns=X_test.columns.values[selector_variance.get_support()])
+    X_test.drop(corr_features, inplace=True, axis=1)
+    X_test = X_test[selected_features].copy()
+
+    print(f"X_train shape: {X_train.shape}")
+    print(f"y_train categorical shape: {y_train_categorical.shape}")
+    print(f"y_train shape: {y_train.shape}")
+
+    print(f"X_test shape: {X_test.shape}")
+    print(f"y_test shape: {y_test.shape}")
+
+    num_classes = len(y_train_categorical[0])
+    
+    return X_train, y_train, X_test, y_test

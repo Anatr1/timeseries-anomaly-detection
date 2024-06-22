@@ -3,8 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 import plotly.express as px
-from sklearn.metrics import confusion_matrix
-
+import pandas as pd
+from sklearn.metrics import confusion_matrix, roc_auc_score
 
 def seaborn_cm(cm, ax, tick_labels, fontsize=14, title=None, sum_actual="over_columns",
                xrotation=0, yrotation=0):
@@ -76,13 +76,62 @@ def plot_uncertainty(uncertainties, title):
 def plot_signals(df, df_action, title="Some signals", saveplot=False):
     fig = go.Figure()
     signals = [
+    "machine_nameKuka Robot_apparent_power",
+    "machine_nameKuka Robot_current",
+    "machine_nameKuka Robot_export_reactive_energy",
+    "machine_nameKuka Robot_frequency",
+    "machine_nameKuka Robot_import_active_energy",
+    "machine_nameKuka Robot_phase_angle",
+    "machine_nameKuka Robot_power",
+    "machine_nameKuka Robot_power_factor",
+    "machine_nameKuka Robot_reactive_power",
+    "machine_nameKuka Robot_voltage",
+    "sensor_id1_AccX",
+    "sensor_id1_AccY",
+    "sensor_id1_AccZ",
+    "sensor_id1_AngX",
     "sensor_id1_AngY",
+    "sensor_id1_AngZ",
+    "sensor_id1_GyroX",
+    "sensor_id1_GyroY",
+    "sensor_id1_GyroZ",
+    "sensor_id2_AccX",
+    "sensor_id2_AccY",
+    "sensor_id2_AccZ",
     "sensor_id2_AngX",
-    "sensor_id5_AngY",
+    "sensor_id2_AngY",
+    "sensor_id2_AngZ",
+    "sensor_id2_GyroX",
+    "sensor_id2_GyroY",
+    "sensor_id2_GyroZ",
+    "sensor_id3_AccX",
+    "sensor_id3_AccY",
+    "sensor_id3_AccZ",
+    "sensor_id3_AngX",
+    "sensor_id3_AngY",
+    "sensor_id3_AngZ",
+    "sensor_id3_GyroX",
+    "sensor_id3_GyroY",
+    "sensor_id3_GyroZ",
+    "sensor_id4_AccX",
+    "sensor_id4_AccY",
     "sensor_id4_AccZ",
     "sensor_id4_AngX",
-    "machine_nameKuka Robot_power"]
-
+    "sensor_id4_AngY",
+    "sensor_id4_AngZ",
+    "sensor_id4_GyroX",
+    "sensor_id4_GyroY",
+    "sensor_id4_GyroZ",
+    "sensor_id5_AccX",
+    "sensor_id5_AccY",
+    "sensor_id5_AccZ",
+    "sensor_id5_AngX",
+    "sensor_id5_AngY",
+    "sensor_id5_AngZ",
+    "sensor_id5_GyroX",
+    "sensor_id5_GyroY",
+    "sensor_id5_GyroZ",]
+    
     start = df.index[9000]
     df_reduced = df.loc[start:]
     duration = 3600 * 3  # seconds
@@ -130,3 +179,104 @@ def plot_signals(df, df_action, title="Some signals", saveplot=False):
         fig.write_html(f"../plots/{title}.html")
         #fig.write_image(f"../plots/{title}.png")
         print(f"Plot saved in ../plots/{title}.html and ../plots/{title}.png")
+        
+def plot_anomalies(classifier, X_test, y_test, freq):
+    try:
+        anomaly_scores = classifier.predict(X_test)
+
+        # Replace inf values with the maximum float value
+        anomaly_scores = np.nan_to_num(anomaly_scores, nan=np.nanmean(anomaly_scores), posinf=np.finfo(float).max, neginf=np.finfo(float).min)
+
+        print("Anomaly scores statistics:")
+        print(f"Mean: {np.mean(anomaly_scores)}")
+        print(f"Std: {np.std(anomaly_scores)}")
+        print(f"Min: {np.min(anomaly_scores)}")
+        print(f"Max: {np.max(anomaly_scores)}")
+    except Exception as e:
+        print(f"An error occurred during prediction: {str(e)}")
+
+        # If an error occurs, you might want to inspect the model's internal state
+        print("Model state:")
+        print(f"Mean: {classifier.mean}")
+        print(f"Covariance matrix condition number: {np.linalg.cond(classifier.cov)}")
+
+    print("Anomaly prediction completed.")
+
+    # Find the class with the highest average anomaly score
+    class_avg_scores = {}
+    for class_label in np.unique(y_test):
+        class_avg_scores[class_label] = np.mean(anomaly_scores[y_test == class_label])
+
+    anomaly_class = max(class_avg_scores, key=class_avg_scores.get)
+
+    # Create binary labels: 1 for the anomaly class, 0 for others
+    y_test_binary = (y_test == anomaly_class).astype(int)
+
+    # Calculate ROC AUC score
+    roc_auc = roc_auc_score(y_test_binary, anomaly_scores)
+
+    print(f"ROC AUC Score: {roc_auc:.4f}")
+    print(f"Detected anomaly class: {anomaly_class}")
+
+    # Visualize the results
+    plt.figure(figsize=(12, 6))
+    threshold = np.mean(anomaly_scores) + 2 * np.std(anomaly_scores)  # Example threshold
+
+    scatter = plt.scatter(range(len(anomaly_scores)), anomaly_scores,
+                        c=anomaly_scores, cmap='coolwarm',
+                        norm=plt.Normalize(vmin=0, vmax=threshold*2))
+
+    plt.colorbar(scatter, label='Anomaly Score')
+    plt.axhline(y=threshold, color='g', linestyle='--', label='Threshold')
+    plt.title(f'Anomaly Scores from LSTMED at frequency {freq}')
+    plt.xlabel('Sample Index')
+    plt.ylabel('Anomaly Score')
+    plt.legend()
+    plt.show()
+
+    anomalies_detected = sum(anomaly_scores > threshold)
+    print(f"Number of anomalies detected: {anomalies_detected}")
+    
+    return anomaly_scores, anomalies_detected
+    
+def plot_anomalies_over_time(X_test, anomaly_scores, anomalies_detected, freq):
+    # Step 1: Create a DataFrame with the original data and anomaly scores
+    df = pd.DataFrame(X_test)
+    df['anomaly_score'] = pd.Series(anomaly_scores)
+
+    # Step 2: Add a timestamp column since it doesn't exist
+    df['timestamp'] = pd.date_range(start='2023-01-01', periods=len(df), freq='T')
+
+    # Step 3: Select a few features to plot
+    features_to_plot = df.columns
+    features_to_plot = features_to_plot.drop(['anomaly_score', 'timestamp'])
+
+    # Step 4: Create the plot
+    fig, axs = plt.subplots(len(features_to_plot) + 1, 1, figsize=(15, 5*len(features_to_plot)), sharex=True)
+    fig.suptitle(f'Time Series Data with Anomaly Scores at frequency {freq}', fontsize=16)
+
+    for i, feature in enumerate(features_to_plot):
+        axs[i].plot(df['timestamp'], df[feature], label=feature)
+        axs[i].set_ylabel(feature)
+        axs[i].legend(loc='upper left')
+
+    # Plot anomaly scores
+    axs[-1].plot(df['timestamp'], df['anomaly_score'], color='red', label='Anomaly Score')
+    axs[-1].set_ylabel('Anomaly Score')
+    axs[-1].set_xlabel('Time')
+    axs[-1].legend(loc='upper left')
+
+    # Highlight top N anomalies
+    N = anomalies_detected
+    top_anomalies = df.nlargest(N, 'anomaly_score')
+
+    for ax in axs:
+        for idx, row in top_anomalies.iterrows():
+            ax.axvline(x=row['timestamp'], color='green', linestyle='--', alpha=0.7)
+
+    plt.tight_layout()
+    plt.show()
+
+    # Print details of top anomalies
+    print("Top", N, "Anomalies:")
+    print(top_anomalies[['timestamp', 'anomaly_score'] + list(features_to_plot)])
