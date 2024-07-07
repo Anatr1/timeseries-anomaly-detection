@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.metrics import confusion_matrix, roc_auc_score, f1_score, accuracy_score, precision_score, recall_score, classification_report
 
 class Confidence:
 
@@ -98,3 +99,54 @@ def anomaly_detection_metric(anomaly_start_timestamps, confidence, df_dataset, t
 
         anomaly_indexes_dict[threshold] = anomaly_indexes
     return sens, spec, fpr, f1, cm_list, anomaly_indexes_dict, acc_with_err, prec
+
+def compute_metrics(classifier, X_test, y_test):
+    try:
+        anomaly_scores = classifier.predict(X_test)
+
+        # Replace inf values with the maximum float value
+        anomaly_scores = np.nan_to_num(anomaly_scores, nan=np.nanmean(anomaly_scores), posinf=np.finfo(float).max, neginf=np.finfo(float).min)
+
+        print("Anomaly scores statistics:")
+        print(f"Mean: {np.mean(anomaly_scores)}")
+        print(f"Std: {np.std(anomaly_scores)}")
+        print(f"Min: {np.min(anomaly_scores)}")
+        print(f"Max: {np.max(anomaly_scores)}")
+    except Exception as e:
+        print(f"An error occurred during prediction: {str(e)}")
+        
+    # Find the class with the highest average anomaly score
+    class_avg_scores = {}
+    for class_label in np.unique(y_test):
+        class_avg_scores[class_label] = np.mean(anomaly_scores[y_test == class_label])
+
+    anomaly_class = max(class_avg_scores, key=class_avg_scores.get)
+
+    # Create binary labels: 1 for the anomaly class, 0 for others
+    y_test_binary = (y_test == anomaly_class).astype(int)
+
+    # Calculate ROC AUC score
+    roc_auc = roc_auc_score(y_test_binary, anomaly_scores)
+
+    print(f"ROC AUC Score: {roc_auc:.4f}")
+    print(f"Detected anomaly class: {anomaly_class}")
+    
+    # Calculate F1 score
+    f1 = f1_score(y_test_binary, anomaly_scores > np.mean(anomaly_scores) + 2 * np.std(anomaly_scores))
+    print(f"F1 Score: {f1:.4f}")
+    
+    # Calculate accuracy
+    accuracy = accuracy_score(y_test_binary, anomaly_scores > np.mean(anomaly_scores) + 2 * np.std(anomaly_scores))
+    print(f"Accuracy: {accuracy:.4f}")
+    
+    # Calculate precision
+    precision = precision_score(y_test_binary, anomaly_scores > np.mean(anomaly_scores) + 2 * np.std(anomaly_scores))
+    print(f"Precision: {precision:.4f}")
+    
+    # Calculate recall
+    recall = recall_score(y_test_binary, anomaly_scores > np.mean(anomaly_scores) + 2 * np.std(anomaly_scores))
+    print(f"Recall: {recall:.4f}")
+    
+    print(classification_report(y_test_binary, anomaly_scores > np.mean(anomaly_scores) + 2 * np.std(anomaly_scores)))
+    
+    return anomaly_scores, y_test_binary
