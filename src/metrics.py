@@ -131,22 +131,25 @@ def compute_metrics(classifier, X_test, y_test):
     print(f"ROC AUC Score: {roc_auc:.4f}")
     print(f"Detected anomaly class: {anomaly_class}")
     
+    threshold = np.mean(anomaly_scores) + 2 * np.std(anomaly_scores)
+    print(f"Threshold: {threshold:.4f}")
+    
     # Calculate F1 score
-    f1 = f1_score(y_test_binary, anomaly_scores > np.mean(anomaly_scores) + 2 * np.std(anomaly_scores))
+    f1 = f1_score(y_test_binary, anomaly_scores > threshold)
     print(f"F1 Score: {f1:.4f}")
     
     # Calculate accuracy
-    accuracy = accuracy_score(y_test_binary, anomaly_scores > np.mean(anomaly_scores) + 2 * np.std(anomaly_scores))
+    accuracy = accuracy_score(y_test_binary, anomaly_scores > threshold)
     print(f"Accuracy: {accuracy:.4f}")
     
     # Calculate precision
-    precision = precision_score(y_test_binary, anomaly_scores > np.mean(anomaly_scores) + 2 * np.std(anomaly_scores))
+    precision = precision_score(y_test_binary, anomaly_scores > threshold)
     print(f"Precision: {precision:.4f}")
     
     # Calculate recall
-    recall = recall_score(y_test_binary, anomaly_scores > np.mean(anomaly_scores) + 2 * np.std(anomaly_scores))
+    recall = recall_score(y_test_binary, anomaly_scores > threshold)
     print(f"Recall: {recall:.4f}")
     
-    print(classification_report(y_test_binary, anomaly_scores > np.mean(anomaly_scores) + 2 * np.std(anomaly_scores)))
+    print(classification_report(y_test_binary, anomaly_scores > threshold))
     
     return anomaly_scores, y_test_binary
