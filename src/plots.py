@@ -213,47 +213,47 @@ def plot_anomalies(classifier, X_test, y_test, freq):
     
     return anomaly_scores, anomalies_detected
 
-# def plot_anomalies_over_time(X_test, anomaly_scores, anomalies_detected, freq):
-#     # Step 1: Create a DataFrame with the original data and anomaly scores
-#     df = pd.DataFrame(X_test)
-#     df['anomaly_score'] = pd.Series(anomaly_scores)
+def plot_all_anomalies_over_time(X_test, anomaly_scores, anomalies_detected, freq):
+    # Step 1: Create a DataFrame with the original data and anomaly scores
+    df = pd.DataFrame(X_test)
+    df['anomaly_score'] = pd.Series(anomaly_scores)
 
-#     # Step 2: Add a timestamp column since it doesn't exist
-#     df['timestamp'] = pd.date_range(start='2023-01-01', periods=len(df), freq='T')
+    # Step 2: Add a timestamp column since it doesn't exist
+    df['timestamp'] = pd.date_range(start='2023-01-01', periods=len(df), freq='T')
 
-#     # Step 3: Select a few features to plot
-#     features_to_plot = df.columns
-#     features_to_plot = features_to_plot.drop(['anomaly_score', 'timestamp'])
+    # Step 3: Select a few features to plot
+    features_to_plot = df.columns
+    features_to_plot = features_to_plot.drop(['anomaly_score', 'timestamp'])
 
-#     # Step 4: Create the plot
-#     fig, axs = plt.subplots(len(features_to_plot) + 1, 1, figsize=(15, 5*len(features_to_plot)), sharex=True)
-#     fig.suptitle(f'Time Series Data with Anomaly Scores at frequency {freq}', fontsize=16)
+    # Step 4: Create the plot
+    fig, axs = plt.subplots(len(features_to_plot) + 1, 1, figsize=(15, 5*len(features_to_plot)), sharex=True)
+    fig.suptitle(f'Time Series Data with Anomaly Scores at frequency {freq}', fontsize=16)
 
-#     for i, feature in enumerate(features_to_plot):
-#         axs[i].plot(df['timestamp'], df[feature], label=feature)
-#         axs[i].set_ylabel(feature)
-#         axs[i].legend(loc='upper left')
+    for i, feature in enumerate(features_to_plot):
+        axs[i].plot(df['timestamp'], df[feature], label=feature)
+        axs[i].set_ylabel(feature)
+        axs[i].legend(loc='upper left')
 
-#     # Plot anomaly scores
-#     axs[-1].plot(df['timestamp'], df['anomaly_score'], color='red', label='Anomaly Score')
-#     axs[-1].set_ylabel('Anomaly Score')
-#     axs[-1].set_xlabel('Time')
-#     axs[-1].legend(loc='upper left')
+    # Plot anomaly scores
+    axs[-1].plot(df['timestamp'], df['anomaly_score'], color='red', label='Anomaly Score')
+    axs[-1].set_ylabel('Anomaly Score')
+    axs[-1].set_xlabel('Time')
+    axs[-1].legend(loc='upper left')
 
-#     # Highlight top N anomalies
-#     N = anomalies_detected
-#     top_anomalies = df.nlargest(N, 'anomaly_score')
+     # Highlight top N anomalies
+    N = anomalies_detected
+    top_anomalies = df.nlargest(N, 'anomaly_score')
 
-#     for ax in axs:
-#         for idx, row in top_anomalies.iterrows():
-#             ax.axvline(x=row['timestamp'], color='green', linestyle='--', alpha=0.7)
+    for ax in axs:
+        for idx, row in top_anomalies.iterrows():
+            ax.axvline(x=row['timestamp'], color='green', linestyle='--', alpha=0.7)
 
-#     plt.tight_layout()
-#     plt.show()
+    plt.tight_layout()
+    plt.show()
 
-#     # Print details of top anomalies
-#     print("Top", N, "Anomalies:")
-#     print(top_anomalies[['timestamp', 'anomaly_score'] + list(features_to_plot)])
+     # Print details of top anomalies
+    print("Top", N, "Anomalies:")
+    print(top_anomalies[['timestamp', 'anomaly_score'] + list(features_to_plot)])
 
 def plot_anomalies_over_time(X_test, anomaly_scores, anomalies_detected, freq):
     # Step 1: Create a DataFrame with the original data and anomaly scores
