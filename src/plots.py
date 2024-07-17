@@ -273,8 +273,10 @@ def plot_anomalies_over_time(X_test, anomaly_scores, anomalies_detected, freq):
     # Plot features on primary y-axis
     ax1.set_xlabel('Time')
     ax1.set_ylabel('Feature Values')
-    for feature in features_to_plot:
-        ax1.plot(df['timestamp'], df[feature], label=f'Feature: {feature}', linewidth=1, alpha=0.7, color='orange')
+    
+    colors = plt.cm.Greys(np.linspace(0, 1, len(features_to_plot)))
+    for feature, color in zip(features_to_plot, colors):
+        ax1.plot(df['timestamp'], df[feature], label=f'Feature: {feature}', linewidth=1, color=color, alpha=0.7)
 
     # Plot anomaly scores on secondary y-axis
     ax2 = ax1.twinx()
@@ -288,6 +290,7 @@ def plot_anomalies_over_time(X_test, anomaly_scores, anomalies_detected, freq):
     for time in top_anomalies['timestamp']:
         ax1.axvline(x=time, color='green', linestyle='--', alpha=0.7, linewidth=1, label='Detected Anomaly (Top N)')
     
+    fig.tight_layout()
     plt.show()
 
     # Print details of top anomalies
