@@ -181,20 +181,10 @@ def plot_signals(df, df_action, title="Some signals", saveplot=False):
         #fig.write_image(f"../plots/{title}.png")
         print(f"Plot saved in ../plots/{title}.html and ../plots/{title}.png")
         
-def plot_anomalies(classifier, X_test, y_test, freq):
-    try:
-        anomaly_scores = classifier.predict(X_test)
-
-        # Replace inf values with the maximum float value
-        anomaly_scores = np.nan_to_num(anomaly_scores, nan=np.nanmean(anomaly_scores), posinf=np.finfo(float).max, neginf=np.finfo(float).min)
-    except Exception as e:
-        print(f"An error occurred during prediction: {str(e)}")
-        # If an error occurs, you might want to inspect the model's internal state
-    print("Anomaly prediction completed.")
-
+def plot_anomalies(anomaly_scores, freq, threshold):
+    
     # Visualize the results
     plt.figure(figsize=(12, 6))
-    threshold = np.mean(anomaly_scores) + 2 * np.std(anomaly_scores)  # Example threshold
 
     scatter = plt.scatter(range(len(anomaly_scores)), anomaly_scores,
                         c=anomaly_scores, cmap='coolwarm',
@@ -211,7 +201,7 @@ def plot_anomalies(classifier, X_test, y_test, freq):
     anomalies_detected = sum(anomaly_scores > threshold)
     print(f"Number of anomalies detected: {anomalies_detected}")
     
-    return anomaly_scores, anomalies_detected
+    return anomalies_detected
 
 def plot_all_anomalies_over_time(X_test, anomaly_scores, anomalies_detected, freq):
     # Step 1: Create a DataFrame with the original data and anomaly scores

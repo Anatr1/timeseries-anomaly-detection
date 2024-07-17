@@ -100,20 +100,7 @@ def anomaly_detection_metric(anomaly_start_timestamps, confidence, df_dataset, t
         anomaly_indexes_dict[threshold] = anomaly_indexes
     return sens, spec, fpr, f1, cm_list, anomaly_indexes_dict, acc_with_err, prec
 
-def compute_metrics(classifier, X_test, y_test):
-    try:
-        anomaly_scores = classifier.predict(X_test)
-
-        # Replace inf values with the maximum float value
-        anomaly_scores = np.nan_to_num(anomaly_scores, nan=np.nanmean(anomaly_scores), posinf=np.finfo(float).max, neginf=np.finfo(float).min)
-
-        print("Anomaly scores statistics:")
-        print(f"Mean: {np.mean(anomaly_scores)}")
-        print(f"Std: {np.std(anomaly_scores)}")
-        print(f"Min: {np.min(anomaly_scores)}")
-        print(f"Max: {np.max(anomaly_scores)}")
-    except Exception as e:
-        print(f"An error occurred during prediction: {str(e)}")
+def compute_metrics(anomaly_scores, y_test, threshold):
         
     # Find the class with the highest average anomaly score
     class_avg_scores = {}
@@ -131,7 +118,6 @@ def compute_metrics(classifier, X_test, y_test):
     print(f"ROC AUC Score: {roc_auc:.4f}")
     print(f"Detected anomaly class: {anomaly_class}")
     
-    threshold = np.mean(anomaly_scores) + 2 * np.std(anomaly_scores)
     print(f"Threshold: {threshold:.4f}")
     
     # Calculate F1 score
