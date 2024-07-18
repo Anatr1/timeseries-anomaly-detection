@@ -137,5 +137,3 @@ def compute_metrics(anomaly_scores, y_test, threshold):
     print(f"Recall: {recall:.4f}")
     
     print(classification_report(y_test_binary, anomaly_scores > threshold))
-    
-    return anomaly_scores, y_test_binary

@@ -298,3 +298,15 @@ def get_train_test_data(df_features, df_features_collision, full_normal=True):
     num_classes = len(y_train_categorical[0])
     
     return X_train, y_train, X_test, y_test
+
+def label_collision_data(df_features, collisions_init):
+# Create a binary label column initialized to 0 (no collision)
+    df_features['is_collision'] = 0
+
+    # Iterate over each collision interval
+    for collision_time in collisions_init:
+        mask = (df_features['start'] <= collision_time) & (df_features['end'] >= collision_time)
+        
+        df_features.loc[mask, 'is_collision'] = 1
+
+    return df_features
