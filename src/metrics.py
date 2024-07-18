@@ -137,3 +137,25 @@ def compute_metrics(anomaly_scores, y_test, threshold):
     print(f"Recall: {recall:.4f}")
     
     print(classification_report(y_test_binary, anomaly_scores > threshold))
+    
+def compute_various_thresholds(anomaly_scores):
+    # Compute the mean and standard deviation of the anomaly scores
+    threshold_1 = np.mean(anomaly_scores) + 2 * np.std(anomaly_scores)
+    # Compute the median and median absolute deviation of the anomaly scores
+    median = np.median(anomaly_scores)
+    mad = np.median(np.abs(anomaly_scores - median))
+    threshold_2 = median + 2 * mad  
+    # Compute the 95th percentile of the anomaly scores
+    threshold_3 = np.percentile(anomaly_scores, 95)
+    # Compute the interquartile range of the anomaly scores
+    Q1 = np.percentile(anomaly_scores, 25)
+    Q3 = np.percentile(anomaly_scores, 75)
+    IQR = Q3 - Q1
+    threshold_4 = Q3 + 1.5 * IQR
+    ["std", "mad", "percentile", "IQR"]
+    
+    for threshold, name in zip ([threshold_1, threshold_2, threshold_3, threshold_4], ["std", "mad", "percentile", "IQR"]):
+        anomalies_detected = sum(anomaly_scores >= threshold)
+        print(f"Number of anomalies detected: {anomalies_detected} with threshold {threshold}, {name}")
+    print()
+    return threshold_1, threshold_2, threshold_3, threshold_4

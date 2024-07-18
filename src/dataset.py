@@ -251,11 +251,6 @@ def get_train_test_data(df_features, df_features_collision, full_normal=True):
     X_test = df_test.drop(["label", "start", "end"], axis=1)
     y_test = df_test["label"]
 
-    print(f"X_train shape: {X_train.shape}")
-    print(f"y_train shape: {y_train.shape}")
-    print(f"X_test shape: {X_test.shape}")
-    print(f"y_test shape: {y_test.shape}")
-
     # Normalize features
     scaler = preprocessing.StandardScaler()
     scaler.fit(X_train)
@@ -288,13 +283,6 @@ def get_train_test_data(df_features, df_features_collision, full_normal=True):
     X_test.drop(corr_features, inplace=True, axis=1)
     X_test = X_test[selected_features].copy()
 
-    print(f"X_train shape: {X_train.shape}")
-    print(f"y_train categorical shape: {y_train_categorical.shape}")
-    print(f"y_train shape: {y_train.shape}")
-
-    print(f"X_test shape: {X_test.shape}")
-    print(f"y_test shape: {y_test.shape}")
-
     num_classes = len(y_train_categorical[0])
     
     return X_train, y_train, X_test, y_test
@@ -310,3 +298,14 @@ def label_collision_data(df_features, collisions_init):
         df_features.loc[mask, 'is_collision'] = 1
 
     return df_features
+
+def predict_anomaly_score(X_test, classifier):
+    try:
+        anomaly_scores = classifier.predict(X_test)
+        # Replace inf values with the maximum float value
+        anomaly_scores = np.nan_to_num(anomaly_scores, nan=np.nanmean(anomaly_scores), posinf=np.finfo(float).max, neginf=np.finfo(float).min)
+    except Exception as e:
+        print(f"An error occurred during prediction: {str(e)}")
+        # If an error occurs, you might want to inspect the model's internal state
+    print("Anomaly prediction completed.")
+    return anomaly_scores
