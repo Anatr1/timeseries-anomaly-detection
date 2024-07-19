@@ -188,9 +188,9 @@ def get_train_test_data_df(df_action, df_meta, action2int, return_df_not_split=F
     
     df_train, df_test = train_test_split(df_features_nonan)
     
-    X_train = df_train.drop(['label'], axis=1)
+    X_train = df_train.drop(['label', 'start', 'end'], axis=1)
     y_train = df_train['label']
-    X_test = df_test.drop(['label'], axis=1)
+    X_test = df_test.drop(['label', 'start', 'end'], axis=1)
     y_test = df_test['label']
     
     if return_df_not_split:
