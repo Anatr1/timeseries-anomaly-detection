@@ -181,7 +181,7 @@ def plot_signals(df, df_action, title="Some signals", saveplot=False):
         #fig.write_image(f"../plots/{title}.png")
         print(f"Plot saved in ../plots/{title}.html and ../plots/{title}.png")
         
-def plot_anomalies(anomaly_scores, freq, threshold):
+def plot_anomalies(anomaly_scores, freq, threshold, model_name="No_Model"):
     
     # Visualize the results
     plt.figure(figsize=(12, 6))
@@ -192,7 +192,7 @@ def plot_anomalies(anomaly_scores, freq, threshold):
 
     plt.colorbar(scatter, label='Anomaly Score')
     plt.axhline(y=threshold, color='g', linestyle='--', label='Threshold')
-    plt.title(f'Anomaly Scores from LSTMED at frequency {freq}')
+    plt.title(f'Anomaly Scores from {model_name} at frequency {freq}')
     plt.xlabel('Sample Index')
     plt.ylabel('Anomaly Score')
     plt.legend()
@@ -269,16 +269,16 @@ def plot_anomalies_over_time(X_test, anomaly_scores, anomalies_detected, freq, t
     
     # print(f"THRESH: {threshold}")
     for feature, color in zip(features_to_plot, colors):
-        if any(df[feature] > threshold):
-            line, = ax1.plot(df['timestamp'], df[feature], label=f'Feature: {feature}', linewidth=1, color=color, alpha=0.7)
-            lines.append(line)
-            labels.append(f'Feature: {feature}')
+        # if any(df[feature] > threshold):
+        line, = ax1.plot(df['timestamp'], df[feature], label=f'Feature: {feature}', linewidth=1, color=color, alpha=0.7)
+        lines.append(line)
+        labels.append(f'Feature: {feature}')
         # else:
             # print("\t\tQuesta feature non supera mai soglia")
 
     #Highlighting collision zones on the graph
     for s, e in zip(collision_zones['start'].tolist(), collision_zones['end'].tolist()):
-        ax1.axvspan(s, e, alpha=0.5, color='blue')
+        ax1.axvspan(s, e, alpha=0.2, color='blue')
 
     # Highlight top N anomalies
     N = anomalies_detected
