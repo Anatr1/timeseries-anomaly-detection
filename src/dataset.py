@@ -285,7 +285,7 @@ def get_train_test_data(df_features, df_features_collision, full_normal=True):
 
     num_classes = len(y_train_categorical[0])
     
-    return X_train, y_train, X_test, y_test
+    return X_train, y_train, X_test, y_test, df_test[['start', 'end']]
 
 def label_collision_data(df_features, collisions_init):
 # Create a binary label column initialized to 0 (no collision)
