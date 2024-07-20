@@ -253,6 +253,8 @@ def plot_anomalies_over_time(X_test, anomaly_scores, anomalies_detected, freq, t
     # Step 2: Add a timestamp column since it doesn't exist
     df['timestamp'] = pd.date_range(start=X_test_start_end['start'].to_list()[0], end=X_test_start_end['end'].to_list()[-1], periods=len(df))  #Qua assicurati di bindare bene i timestamp (se puoi, non generarli)
     
+    print(df['timestamp'])
+
     # Step 3: Select a few features to plot along with the anomaly scores
     features_to_plot = df.columns.drop(['anomaly_score', 'timestamp'])
 
@@ -303,6 +305,46 @@ def plot_anomalies_over_time(X_test, anomaly_scores, anomalies_detected, freq, t
     # Print details of top anomalies
     print("Top", N, "Anomalies:")
     print(top_anomalies[['timestamp', 'anomaly_score'] + list(features_to_plot)])
+
+def plot_anomalies_over_time_isolation_forest(X_test, pred, freq, collision_zones, X_test_start_end):
+    # Step 1: Create a DataFrame with the original data and anomaly scores
+    df = X_test.copy()
+
+    # Step 2: Add a timestamp column since it doesn't exist
+    df['timestamp'] = pd.date_range(start=X_test_start_end['start'].to_list()[0], end=X_test_start_end['end'].to_list()[-1], periods=len(df))  #Qua assicurati di bindare bene i timestamp (se puoi, non generarli)
+
+    # Step 3: Select a few features to plot along with the anomaly scores
+    features_to_plot = df.columns.drop(['timestamp'])
+
+    # Step 4: Create the plot
+    fig, ax1 = plt.subplots(figsize=(15, 6))
+    ax1.set_title(f'Time Series Data with Anomaly Scores at frequency {freq}', fontsize=16)
+    
+    # Plot features on primary y-axis
+    ax1.set_xlabel('Time')
+    ax1.set_ylabel('Feature Values')
+    colors = plt.cm.Greys(np.linspace(0, 1, len(features_to_plot)))
+    lines = []  # To collect plot lines for legend
+    labels = []  # To collect plot labels for legend
+    
+    # print(f"THRESH: {threshold}")
+    for feature, color in zip(features_to_plot, colors):
+        # if any(df[feature] > threshold):
+        line, = ax1.plot(df['timestamp'], df[feature], label=f'Feature: {feature}', linewidth=1, color=color, alpha=0.7)
+        lines.append(line)
+        labels.append(f'Feature: {feature}')
+        # else:
+            # print("\t\tQuesta feature non supera mai soglia")
+
+    #Highlighting collision zones on the graph
+    for s, e in zip(collision_zones['start'].tolist(), collision_zones['end'].tolist()):
+        ax1.axvspan(s, e, alpha=0.2, color='blue')
+
+    # ax1.plot(df['timestamp'], df['anomaly_score'], color='red', label='Anomaly Score', linestyle='--', linewidth=1)
+    ax1.plot(df['timestamp'], pred, 'go-', label='Anomaly Score', linestyle='--', linewidth=1)
+
+    fig.tight_layout()
+    plt.show()
     
 def plot_roc_curve(y_true, anomaly_scores):
     # Ensure y_true is a numpy array if it's a DataFrame column
