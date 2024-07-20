@@ -309,3 +309,10 @@ def predict_anomaly_score(X_test, classifier):
         # If an error occurs, you might want to inspect the model's internal state
     print("Anomaly prediction completed.")
     return anomaly_scores
+
+def find_collisions_zones(collisions):
+    ts_starts = collisions[collisions['Inizio/fine'] == 'i'].Timestamp.reset_index()
+    ts_ends = collisions[collisions['Inizio/fine'] == 'f'].Timestamp.reset_index()
+    d = {'start': ts_starts.Timestamp, 'end': ts_ends.Timestamp}
+    collision_zones = pd.DataFrame(d)
+    return collision_zones
