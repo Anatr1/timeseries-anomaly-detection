@@ -162,4 +162,5 @@ cython_debug/
 dataset/
 lab/
 models_output/
+features/
 test_model.ipynb
