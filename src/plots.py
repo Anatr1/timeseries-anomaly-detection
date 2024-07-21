@@ -252,8 +252,6 @@ def plot_anomalies_over_time(X_test, anomaly_scores, anomalies_detected, freq, t
 
     # Step 2: Add a timestamp column since it doesn't exist
     df['timestamp'] = pd.date_range(start=X_test_start_end['start'].to_list()[0], end=X_test_start_end['end'].to_list()[-1], periods=len(df))  #Qua assicurati di bindare bene i timestamp (se puoi, non generarli)
-    
-    print(df['timestamp'])
 
     # Step 3: Select a few features to plot along with the anomaly scores
     features_to_plot = df.columns.drop(['anomaly_score', 'timestamp'])
@@ -330,7 +328,7 @@ def plot_anomalies_over_time_isolation_forest(X_test, pred, freq, collision_zone
     # print(f"THRESH: {threshold}")
     for feature, color in zip(features_to_plot, colors):
         # if any(df[feature] > threshold):
-        line, = ax1.plot(df['timestamp'], df[feature], label=f'Feature: {feature}', linewidth=1, color=color, alpha=0.7)
+        line, = ax1.plot(df['timestamp'], df[feature], label=f'Feature: {feature}', linewidth=1, color=color, alpha=1)
         lines.append(line)
         labels.append(f'Feature: {feature}')
         # else:

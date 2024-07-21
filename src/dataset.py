@@ -257,45 +257,45 @@ def get_train_test_data(df_features, df_features_collision, full_normal=True):
     print(f"y_test shape: {y_test.shape}")
 
     # Normalize features
-    scaler = preprocessing.StandardScaler()
-    scaler.fit(X_train)
-    X_train = pd.DataFrame(scaler.transform(X_train), columns=X_train.columns, index=X_train.index)
+    # scaler = preprocessing.StandardScaler()
+    # scaler.fit(X_train)
+    # X_train = pd.DataFrame(scaler.transform(X_train), columns=X_train.columns, index=X_train.index)
 
-    # Remove zero-variance features
-    selector_variance = VarianceThreshold()
-    selector_variance.fit(X_train)
-    X_train = pd.DataFrame(selector_variance.transform(X_train),
-                            columns=X_train.columns.values[selector_variance.get_support()])
+    # # Remove zero-variance features
+    # selector_variance = VarianceThreshold()
+    # selector_variance.fit(X_train)
+    # X_train = pd.DataFrame(selector_variance.transform(X_train),
+    #                         columns=X_train.columns.values[selector_variance.get_support()])
 
-    # Remove highly correlated features
-    corr_features = tsfel.correlated_features(X_train,
-                                            threshold=0.95)
-    X_train.drop(corr_features, inplace=True, axis=1)
+    # # Remove highly correlated features
+    # corr_features = tsfel.correlated_features(X_train,
+    #                                         threshold=0.95)
+    # X_train.drop(corr_features, inplace=True, axis=1)
 
-    # Lasso selector
-    lsvc = LinearSVC(C=0.01, penalty="l1", dual=False).fit(X_train, y_train)
-    lasso = SelectFromModel(lsvc, prefit=True)
-    selected_features = X_train.columns.values[lasso.get_support()]
-    X_train = X_train[selected_features].copy()
+    # # Lasso selector
+    # lsvc = LinearSVC(C=0.01, penalty="l1", dual=False).fit(X_train, y_train)
+    # lasso = SelectFromModel(lsvc, prefit=True)
+    # selected_features = X_train.columns.values[lasso.get_support()]
+    # X_train = X_train[selected_features].copy()
 
-    # Labels
-    num_classes = len(set(y_train))
-    y_train_categorical = tf.keras.utils.to_categorical(y_train, num_classes=num_classes)
+    # # Labels
+    # num_classes = len(set(y_train))
+    # y_train_categorical = tf.keras.utils.to_categorical(y_train, num_classes=num_classes)
 
-    # Test
-    X_test = pd.DataFrame(selector_variance.transform(scaler.transform(X_test)),
-                        columns=X_test.columns.values[selector_variance.get_support()])
-    X_test.drop(corr_features, inplace=True, axis=1)
-    X_test = X_test[selected_features].copy()
+    # # Test
+    # X_test = pd.DataFrame(selector_variance.transform(scaler.transform(X_test)),
+    #                     columns=X_test.columns.values[selector_variance.get_support()])
+    # X_test.drop(corr_features, inplace=True, axis=1)
+    # X_test = X_test[selected_features].copy()
 
-    print(f"X_train shape: {X_train.shape}")
-    print(f"y_train categorical shape: {y_train_categorical.shape}")
-    print(f"y_train shape: {y_train.shape}")
+    # print(f"X_train shape: {X_train.shape}")
+    # print(f"y_train categorical shape: {y_train_categorical.shape}")
+    # print(f"y_train shape: {y_train.shape}")
 
-    print(f"X_test shape: {X_test.shape}")
-    print(f"y_test shape: {y_test.shape}")
+    # print(f"X_test shape: {X_test.shape}")
+    # print(f"y_test shape: {y_test.shape}")
 
-    num_classes = len(y_train_categorical[0])
+    # num_classes = len(y_train_categorical[0])
     
     return X_train, y_train, X_test, y_test, df_test[["start", "end"]]
 
