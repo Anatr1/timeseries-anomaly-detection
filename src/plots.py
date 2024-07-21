@@ -6,6 +6,7 @@ import plotly.express as px
 import pandas as pd
 import matplotlib.dates as mdates
 from sklearn.metrics import confusion_matrix, roc_curve, auc
+from metrics import compute_reconstruction_error
 
 def seaborn_cm(cm, ax, tick_labels, fontsize=14, title=None, sum_actual="over_columns",
                xrotation=0, yrotation=0):
@@ -181,12 +182,16 @@ def plot_signals(df, df_action, title="Some signals", saveplot=False):
         #fig.write_image(f"../plots/{title}.png")
         print(f"Plot saved in ../plots/{title}.html and ../plots/{title}.png")
         
-def plot_anomalies(classifier, X_test, y_test, freq):
+def plot_anomalies(classifier, X_test, y_test, freq, xgboost=False):
     try:
-        anomaly_scores = classifier.predict(X_test)
-
+        if xgboost:
+            anomaly_scores = compute_reconstruction_error(classifier, X_test)
+        else:
+            anomaly_scores = classifier.predict(X_test)
+            
         # Replace inf values with the maximum float value
         anomaly_scores = np.nan_to_num(anomaly_scores, nan=np.nanmean(anomaly_scores), posinf=np.finfo(float).max, neginf=np.finfo(float).min)
+        print(f"Anomaly scores after replacing inf values: {anomaly_scores}")
     except Exception as e:
         print(f"An error occurred during prediction: {str(e)}")
         # If an error occurs, you might want to inspect the model's internal state

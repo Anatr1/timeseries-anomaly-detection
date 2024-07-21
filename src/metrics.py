@@ -153,3 +153,9 @@ def compute_metrics(classifier, X_test, y_test):
     print(classification_report(y_test_binary, anomaly_scores > threshold))
     
     return anomaly_scores, y_test_binary
+
+def compute_reconstruction_error(model, X):
+    X_pred = model.predict(X).reshape(-1, 1)  # Reshape X_pred to be 2-dimensional
+    #score = model.score(X, X_pred)
+    mse = np.mean(np.power(X - X_pred, 2), axis=1)
+    return mse
