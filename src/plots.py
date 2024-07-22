@@ -247,7 +247,7 @@ def plot_all_anomalies_over_time(X_test, anomaly_scores, anomalies_detected, fre
 
 def plot_anomalies_over_time(X_test, anomaly_scores, anomalies_detected, freq, threshold, collision_zones, X_test_start_end):
     # Step 1: Create a DataFrame with the original data and anomaly scores
-    df = pd.DataFrame(X_test)
+    df = X_test.copy()
     df['anomaly_score'] = pd.Series(anomaly_scores)
 
     # Step 2: Add a timestamp column since it doesn't exist

@@ -138,6 +138,7 @@ def anomaly_detection_metric(anomaly_start_timestamps, confidence, df_dataset, t
     
 #     print(classification_report(y_test_binary, anomaly_scores > threshold))
 
+
 def compute_metrics(anomaly_scores, y_test, threshold):
     
     print(f"Threshold: {threshold:.4f}")
