@@ -245,7 +245,7 @@ def plot_all_anomalies_over_time(X_test, anomaly_scores, anomalies_detected, fre
     print("Top", N, "Anomalies:")
     print(top_anomalies[['timestamp', 'anomaly_score'] + list(features_to_plot)])
 
-def plot_signals(df, df_action, collisions_zones, df_predicted_zones, title="Some signals", saveplot=False):
+def plot_anomalies_true_and_predicted(df, df_action, collisions_zones, df_predicted_zones, title="Some signals", saveplot=False):
     fig = go.Figure()
     signals = [
     # "sensor_id1_AngY",
