@@ -305,7 +305,7 @@ def label_collision_data(df_features, collisions_init):
 
     # Iterate over each collision interval
     for collision_time in collisions_init:
-        mask = (df_features['start'] <= collision_time) and (df_features['end'] >= collision_time)
+        mask = (df_features['start'] <= collision_time) & (df_features['end'] >= collision_time)
         
         df_features.loc[mask, 'is_collision'] = 1
 
