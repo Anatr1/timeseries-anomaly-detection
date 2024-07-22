@@ -101,42 +101,30 @@ def anomaly_detection_metric(anomaly_start_timestamps, confidence, df_dataset, t
     return sens, spec, fpr, f1, cm_list, anomaly_indexes_dict, acc_with_err, prec
 
 def compute_metrics(anomaly_scores, y_test, threshold):
-        
-    # Find the class with the highest average anomaly score
-    class_avg_scores = {}
-    for class_label in np.unique(y_test):
-        class_avg_scores[class_label] = np.mean(anomaly_scores[y_test == class_label])
-
-    anomaly_class = max(class_avg_scores, key=class_avg_scores.get)
-
-    # Create binary labels: 1 for the anomaly class, 0 for others
-    y_test_binary = (y_test == anomaly_class).astype(int)
-
-    # Calculate ROC AUC score
-    roc_auc = roc_auc_score(y_test_binary, anomaly_scores)
-
-    print(f"ROC AUC Score: {roc_auc:.4f}")
-    print(f"Detected anomaly class: {anomaly_class}")
     
     print(f"Threshold: {threshold:.4f}")
     
+    roc_auc = roc_auc_score(y_test, anomaly_scores)
+
+    print(f"ROC AUC Score: {roc_auc:.4f}")
+    
     # Calculate F1 score
-    f1 = f1_score(y_test_binary, anomaly_scores > threshold)
+    f1 = f1_score(y_test, anomaly_scores > threshold)
     print(f"F1 Score: {f1:.4f}")
     
     # Calculate accuracy
-    accuracy = accuracy_score(y_test_binary, anomaly_scores > threshold)
+    accuracy = accuracy_score(y_test, anomaly_scores > threshold)
     print(f"Accuracy: {accuracy:.4f}")
     
     # Calculate precision
-    precision = precision_score(y_test_binary, anomaly_scores > threshold)
+    precision = precision_score(y_test, anomaly_scores > threshold)
     print(f"Precision: {precision:.4f}")
     
     # Calculate recall
-    recall = recall_score(y_test_binary, anomaly_scores > threshold)
+    recall = recall_score(y_test, anomaly_scores > threshold)
     print(f"Recall: {recall:.4f}")
     
-    print(classification_report(y_test_binary, anomaly_scores > threshold))
+    print(classification_report(y_test, anomaly_scores > threshold))
     
 def compute_various_thresholds(anomaly_scores):
     # Compute the mean and standard deviation of the anomaly scores

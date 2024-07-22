@@ -245,53 +245,82 @@ def plot_all_anomalies_over_time(X_test, anomaly_scores, anomalies_detected, fre
     print("Top", N, "Anomalies:")
     print(top_anomalies[['timestamp', 'anomaly_score'] + list(features_to_plot)])
 
-def plot_anomalies_over_time(X_test, anomaly_scores, anomalies_detected, freq, threshold, collision_zones, X_test_start_end):
-    # Create a DataFrame with the original data and anomaly scores
-    df = pd.DataFrame(X_test)
-    df['anomaly_score'] = anomaly_scores
+def plot_signals(df, df_action, collisions_zones, df_predicted_zones, title="Some signals", saveplot=False):
+    fig = go.Figure()
+    signals = [
+    # "sensor_id1_AngY",
+    # "sensor_id2_AngX",
+    # "sensor_id5_AngY",
+    # "sensor_id4_AccZ",
+    # "sensor_id4_AngX",
+    # "machine_nameKuka Robot_power"
+    ]
 
-    # Use the actual start and end times from the test set to create timestamps
-    timestamps = pd.date_range(start=X_test_start_end['start'].iloc[0], end=X_test_start_end['end'].iloc[-1], periods=len(df))
-    df['timestamp'] = timestamps
+    # signals = df.columns
+    
+    start = df.index[0]
+    df_reduced = df.loc[start:]
+    duration = 3600 * 3  # seconds
+    time_delta = df_reduced.index - start
+    df_interval = df_reduced[time_delta.total_seconds() <= duration]
+    j = 0
 
-    # Select features to plot along with the anomaly scores
-    features_to_plot = df.columns.drop(['anomaly_score', 'timestamp'])
+    # Leveraging plotly express
+    n_colors = len(signals)
+    colors = px.colors.sample_colorscale("greys", [n/(n_colors -1) for n in range(n_colors)])  # From continuous colormap
+    colors = px.colors.qualitative.Set2  # From discrete colormap, see https://plotly.com/python/discrete-color/
+    df_signals = df_interval[signals].select_dtypes(['number'])
+    df_signals = df_signals / df_signals.max()
+    fig = px.line(df_signals, x=df_signals.index, y=df_signals.columns, color_discrete_sequence=colors)
 
-    # Create the plot
-    fig, ax1 = plt.subplots(figsize=(15, 6))
-    ax1.set_title(f'Time Series Data with Anomaly Scores at frequency {freq}', fontsize=16)
-    ax1.set_xlabel('Time')
-    ax1.set_ylabel('Feature Values')
-
-    # Plot each feature with a different shade
-    colors = plt.cm.Greys(np.linspace(0, 1, len(features_to_plot)))
-    for feature, color in zip(features_to_plot, colors):
-        ax1.plot(df['timestamp'], df[feature], label=f'Feature: {feature}', color=color, linewidth=1, alpha=0.7)
+    # Leveraging plotly graph object
+    colors_action = px.colors.qualitative.Antique
+    j = 0
+    for action in df_action.loc[df_interval.index].action.unique():
+        df_action_interval = df_action.loc[df_interval.index]
+        df_action_single_action = df_action_interval[df_action_interval['action'] == action]
+        fig.add_trace(go.Scatter(
+            x=df_action_single_action.index,
+            y=[-0.3] * len(df_action_single_action.index),
+            line_shape="hv",
+            line=dict(color=colors_action[j % len(colors_action)], width=2.5),
+            name=action))
+        j += 1
 
     # Highlight collision zones
-    for index, row in collision_zones.iterrows():
-        ax1.axvspan(row['start'], row['end'], color='blue', alpha=0.3, label='Collision Zone' if index == 0 else "")
+    for _, row in collisions_zones.iterrows():
+        fig.add_vrect(
+            x0=row['start'], x1=row['end'],
+            fillcolor="blue", opacity=0.3,
+            layer="below", line_width=0,
+        )
+    
+    # Highlight predicted collision zones
+    for _, row in df_predicted_zones.iterrows():
+        if row['is_collision'] == 1:
+            fig.add_vrect(
+                x0=row['start'], x1=row['end'],
+                fillcolor="red", opacity=0.3,
+                layer="below", line_width=0,
+            )
 
-    # Plot anomaly scores
-    ax2 = ax1.twinx()
-    ax2.set_ylabel('Anomaly Score', color='red')
-    ax2.plot(df['timestamp'], df['anomaly_score'], color='red', linestyle='--', linewidth=2, label='Anomaly Score')
-    ax2.tick_params(axis='y', labelcolor='red')
-
-    # Draw threshold line
-    ax2.axhline(y=threshold, color='green', linestyle='--', label='Threshold', linewidth=2)
-
-    # Highlight top N anomalies
-    top_anomalies = df.nlargest(anomalies_detected, 'anomaly_score')
-    for time in top_anomalies['timestamp']:
-        ax1.axvline(x=time, color='magenta', linestyle='--', alpha=0.5, label='Detected Anomaly (Top N)' if time == top_anomalies['timestamp'].iloc[0] else "")
-
-    plt.tight_layout()
-    plt.show()
-
-    # Print details of top anomalies
-    print("Top", anomalies_detected, "Anomalies:")
-    print(top_anomalies[['timestamp', 'anomaly_score'] + list(features_to_plot)])
+    fig.update_layout(
+    title=title,
+    xaxis_title="Time",
+    yaxis_title="",
+    legend_title="Legend",
+    font=dict(
+        family="Courier New, monospace",
+        size=12,
+        color="Black"
+    )
+    )
+    fig.show()
+    
+    if saveplot:
+        fig.write_html(f"../plots/{title}.html")
+        #fig.write_image(f"../plots/{title}.png")
+        print(f"Plot saved in ../plots/{title}.html and ../plots/{title}.png")
     
 def plot_roc_curve(y_true, anomaly_scores):
     # Ensure y_true is a numpy array if it's a DataFrame column

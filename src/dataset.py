@@ -5,7 +5,9 @@ import tsfel
 import pandas as pd
 import warnings
 import os
+from pathlib import Path
 import numpy as np
+from pandas import HDFStore
 
 from sklearn import preprocessing
 from sklearn.svm import LinearSVC
@@ -99,7 +101,16 @@ def get_df_action(filepaths_csv, filepaths_meta, action2int=None, delimiter=";")
 
     return df_action, df, df_meta, action2int
 
-def get_features_ts(domain, df_action, df_meta, frequency, action2int):
+def get_features_ts(domain, df_action, df_meta, frequency, action2int, save_dir='path/to/save'):
+    
+    Path(save_dir).mkdir(parents=True, exist_ok=True)
+    save_path = os.path.join(save_dir, f"features_{domain}_{frequency}.csv")
+    
+    if os.path.exists(save_path):
+        print("Loading features from file.")
+        with pd.HDFStore(save_path) as store:
+            dataframe_features = store['data']
+        return dataframe_features
     
     warnings.filterwarnings("ignore", category=FutureWarning)
     warnings.filterwarnings("ignore", category=UserWarning)
@@ -153,7 +164,10 @@ def get_features_ts(domain, df_action, df_meta, frequency, action2int):
             dataframe_features.append(X)
 
     dataframe_features = pd.concat(dataframe_features)
-    print("Computing features done.")
+    with pd.HDFStore(save_path) as store:
+        store['data'] = dataframe_features
+    print(f"Features saved to {save_path}.")
+    
     return dataframe_features
 
 def load_data(PATH, frequency):
@@ -285,7 +299,7 @@ def get_train_test_data(df_features, df_features_collision, full_normal=True):
 
     num_classes = len(y_train_categorical[0])
     
-    return X_train, y_train, X_test, y_test, df_test[['start', 'end']]
+    return X_train, y_train, X_test, y_test, df_test
 
 def label_collision_data(df_features, collisions_init):
 # Create a binary label column initialized to 0 (no collision)
