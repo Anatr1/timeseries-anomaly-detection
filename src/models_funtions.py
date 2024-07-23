@@ -19,7 +19,7 @@ def get_dataframes(root, file_name, recording, freq, features_folder=None):
     df_features = get_features_ts("statistical", df_action, df_meta, frequency, action2int, features_folder)
     print("--- %s seconds ---" % (time.time() - start_time))
     
-    return df_features, df, df_action
+    return df_features, df, df_action, action2int
 
 def get_collisions(recording, root):
     xls = pd.ExcelFile(os.path.join(root, "20220811_collisions_timestamp.xlsx"))
