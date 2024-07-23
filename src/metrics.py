@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.metrics import confusion_matrix, roc_auc_score, f1_score, accuracy_score, precision_score, recall_score, classification_report
+from sklearn.metrics import roc_auc_score, f1_score, accuracy_score, precision_score, recall_score, classification_report
 
 class Confidence:
 
@@ -98,64 +98,49 @@ def anomaly_detection_metric(anomaly_start_timestamps, confidence, df_dataset, t
 
 
         anomaly_indexes_dict[threshold] = anomaly_indexes
+    
+    
     return sens, spec, fpr, f1, cm_list, anomaly_indexes_dict, acc_with_err, prec
 
-def compute_metrics(classifier, X_test, y_test):
-    try:
-        anomaly_scores = classifier.predict(X_test)
-
-        # Replace inf values with the maximum float value
-        anomaly_scores = np.nan_to_num(anomaly_scores, nan=np.nanmean(anomaly_scores), posinf=np.finfo(float).max, neginf=np.finfo(float).min)
-
-        print("Anomaly scores statistics:")
-        print(f"Mean: {np.mean(anomaly_scores)}")
-        print(f"Std: {np.std(anomaly_scores)}")
-        print(f"Min: {np.min(anomaly_scores)}")
-        print(f"Max: {np.max(anomaly_scores)}")
-    except Exception as e:
-        print(f"An error occurred during prediction: {str(e)}")
-        
-    # Find the class with the highest average anomaly score
-    class_avg_scores = {}
-    for class_label in np.unique(y_test):
-        class_avg_scores[class_label] = np.mean(anomaly_scores[y_test == class_label])
-
-    anomaly_class = max(class_avg_scores, key=class_avg_scores.get)
-
-    # Create binary labels: 1 for the anomaly class, 0 for others
-    y_test_binary = (y_test == anomaly_class).astype(int)
-
-    # Calculate ROC AUC score
-    roc_auc = roc_auc_score(y_test_binary, anomaly_scores)
-
-    print(f"ROC AUC Score: {roc_auc:.4f}")
-    print(f"Detected anomaly class: {anomaly_class}")
-    
-    threshold = np.mean(anomaly_scores) + 2 * np.std(anomaly_scores)
-    print(f"Threshold: {threshold:.4f}")
+def compute_metrics(y_test, y_pred):
     
     # Calculate F1 score
-    f1 = f1_score(y_test_binary, anomaly_scores > threshold)
+    f1 = f1_score(y_test, y_pred)
     print(f"F1 Score: {f1:.4f}")
     
     # Calculate accuracy
-    accuracy = accuracy_score(y_test_binary, anomaly_scores > threshold)
+    accuracy = accuracy_score(y_test, y_pred)
     print(f"Accuracy: {accuracy:.4f}")
     
     # Calculate precision
-    precision = precision_score(y_test_binary, anomaly_scores > threshold)
+    precision = precision_score(y_test, y_pred)
     print(f"Precision: {precision:.4f}")
     
     # Calculate recall
-    recall = recall_score(y_test_binary, anomaly_scores > threshold)
+    recall = recall_score(y_test, y_pred)
     print(f"Recall: {recall:.4f}")
     
-    print(classification_report(y_test_binary, anomaly_scores > threshold))
+    print(classification_report(y_test, y_pred))
     
-    return anomaly_scores, y_test_binary
-
-def compute_reconstruction_error(model, X):
-    X_pred = model.predict(X).reshape(-1, 1)  # Reshape X_pred to be 2-dimensional
-    #score = model.score(X, X_pred)
-    mse = np.mean(np.power(X - X_pred, 2), axis=1)
-    return mse
+def compute_various_thresholds(anomaly_scores):
+    # Compute the mean and standard deviation of the anomaly scores
+    threshold_1 = np.mean(anomaly_scores) + 2 * np.std(anomaly_scores)
+    # Compute the median and median absolute deviation of the anomaly scores
+    median = np.median(anomaly_scores)
+    mad = np.median(np.abs(anomaly_scores - median))
+    threshold_2 = median + 2 * mad  
+    # Compute the 95th percentile of the anomaly scores
+    threshold_3 = np.percentile(anomaly_scores, 95)
+    # Compute the interquartile range of the anomaly scores
+    Q1 = np.percentile(anomaly_scores, 25)
+    Q3 = np.percentile(anomaly_scores, 75)
+    IQR = Q3 - Q1
+    threshold_4 = Q3 + 1.5 * IQR
+    
+    threhsold_5 = 0.0
+    
+    for threshold, name in zip ([threshold_1, threshold_2, threshold_3, threshold_4, threhsold_5], ["std", "mad", "percentile", "IQR", "zero"]):
+        anomalies_detected = sum(anomaly_scores >= threshold)
+        print(f"Number of anomalies detected: {anomalies_detected} with threshold {threshold}, {name}")
+    print()
+    return threshold_1, threshold_2, threshold_3, threshold_4, threhsold_5
