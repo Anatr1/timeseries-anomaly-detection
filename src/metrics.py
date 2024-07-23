@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.metrics import confusion_matrix, roc_auc_score, f1_score, accuracy_score, precision_score, recall_score, classification_report
+from sklearn.metrics import roc_auc_score, f1_score, accuracy_score, precision_score, recall_score, classification_report
 
 class Confidence:
 
@@ -98,33 +98,29 @@ def anomaly_detection_metric(anomaly_start_timestamps, confidence, df_dataset, t
 
 
         anomaly_indexes_dict[threshold] = anomaly_indexes
+    
+    
     return sens, spec, fpr, f1, cm_list, anomaly_indexes_dict, acc_with_err, prec
 
-def compute_metrics(anomaly_scores, y_test, threshold):
-    
-    print(f"Threshold: {threshold:.4f}")
-    
-    roc_auc = roc_auc_score(y_test, anomaly_scores)
-
-    print(f"ROC AUC Score: {roc_auc:.4f}")
+def compute_metrics(y_test, y_pred):
     
     # Calculate F1 score
-    f1 = f1_score(y_test, anomaly_scores > threshold)
+    f1 = f1_score(y_test, y_pred)
     print(f"F1 Score: {f1:.4f}")
     
     # Calculate accuracy
-    accuracy = accuracy_score(y_test, anomaly_scores > threshold)
+    accuracy = accuracy_score(y_test, y_pred)
     print(f"Accuracy: {accuracy:.4f}")
     
     # Calculate precision
-    precision = precision_score(y_test, anomaly_scores > threshold)
+    precision = precision_score(y_test, y_pred)
     print(f"Precision: {precision:.4f}")
     
     # Calculate recall
-    recall = recall_score(y_test, anomaly_scores > threshold)
+    recall = recall_score(y_test, y_pred)
     print(f"Recall: {recall:.4f}")
     
-    print(classification_report(y_test, anomaly_scores > threshold))
+    print(classification_report(y_test, y_pred))
     
 def compute_various_thresholds(anomaly_scores):
     # Compute the mean and standard deviation of the anomaly scores
@@ -140,10 +136,11 @@ def compute_various_thresholds(anomaly_scores):
     Q3 = np.percentile(anomaly_scores, 75)
     IQR = Q3 - Q1
     threshold_4 = Q3 + 1.5 * IQR
-    ["std", "mad", "percentile", "IQR"]
     
-    for threshold, name in zip ([threshold_1, threshold_2, threshold_3, threshold_4], ["std", "mad", "percentile", "IQR"]):
+    threhsold_5 = 0.0
+    
+    for threshold, name in zip ([threshold_1, threshold_2, threshold_3, threshold_4, threhsold_5], ["std", "mad", "percentile", "IQR", "zero"]):
         anomalies_detected = sum(anomaly_scores >= threshold)
         print(f"Number of anomalies detected: {anomalies_detected} with threshold {threshold}, {name}")
     print()
-    return threshold_1, threshold_2, threshold_3, threshold_4
+    return threshold_1, threshold_2, threshold_3, threshold_4, threhsold_5
