@@ -94,15 +94,17 @@ def get_df_action(filepaths_csv, filepaths_meta, action2int=None, delimiter=";")
     return df_action, df, df_meta, action2int
 
 def get_features_ts(domain, df_action, df_meta, frequency, action2int, save_dir='path/to/save'):
+    save_path = None
+    if save_dir != None:
+        Path(save_dir).mkdir(parents=True, exist_ok=True)
+        save_path = os.path.join(save_dir, f"features_{domain}_{frequency}.csv")
     
-    Path(save_dir).mkdir(parents=True, exist_ok=True)
-    save_path = os.path.join(save_dir, f"features_{domain}_{frequency}.csv")
-    
-    if os.path.exists(save_path) and save_dir != None:
-        print("Loading features from file.")
-        with pd.HDFStore(save_path) as store:
-            dataframe_features = store['data']
-        return dataframe_features
+    if save_dir != None and save_path !=None:
+        if os.path.exists(save_path):
+            print("Loading features from file.")
+            with pd.HDFStore(save_path) as store:
+                dataframe_features = store['data']
+            return dataframe_features
     
     warnings.filterwarnings("ignore", category=FutureWarning)
     warnings.filterwarnings("ignore", category=UserWarning)
@@ -156,9 +158,10 @@ def get_features_ts(domain, df_action, df_meta, frequency, action2int, save_dir=
             dataframe_features.append(X)
 
     dataframe_features = pd.concat(dataframe_features)
-    with pd.HDFStore(save_path) as store:
-        store['data'] = dataframe_features
-    print(f"Features saved to {save_path}.")
+    if save_dir != None:
+        with pd.HDFStore(save_path) as store:
+            store['data'] = dataframe_features
+        print(f"Features saved to {save_path}.")
     
     return dataframe_features
 
