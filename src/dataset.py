@@ -1,4 +1,3 @@
-import time
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 import tsfel
@@ -7,7 +6,6 @@ import warnings
 import os
 from pathlib import Path
 import numpy as np
-from pandas import HDFStore
 
 from sklearn import preprocessing
 from sklearn.svm import LinearSVC
