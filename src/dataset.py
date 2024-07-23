@@ -6,6 +6,7 @@ import warnings
 import os
 from pathlib import Path
 import numpy as np
+from pandas import HDFStore
 
 from sklearn import preprocessing
 from sklearn.svm import LinearSVC

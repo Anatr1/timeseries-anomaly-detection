@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score, classification_report
+from sklearn.metrics import roc_auc_score, f1_score, accuracy_score, precision_score, recall_score, classification_report
 
 class Confidence:
 
