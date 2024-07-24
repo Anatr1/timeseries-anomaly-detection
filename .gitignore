@@ -164,3 +164,4 @@ lab/
 models_output/
 features/
 test_model.ipynb
+src/TO_IGNORE*
