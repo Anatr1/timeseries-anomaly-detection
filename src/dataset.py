@@ -164,18 +164,13 @@ def get_features_ts(domain, df_action, df_meta, frequency, action2int, save_dir=
     
     return dataframe_features
 
-def get_train_test_data(df_features, df_features_collision, normalized=True, full_normal=True):
-    df_features.isnull().values.any()
-    #df_features_nonan = df_features.drop((df_features.columns[df_features.isna().any()].tolist()), axis=1)
-    df_features_nonan = df_features.fillna(0)
-    df_features_collision_nonan = df_features_collision.fillna(0)
-
+def get_train_test_data(df_features, df_features_collision, normalized=True, full_normal=True, get_categorical=False):
     # I normally want to train on the whole normal dataset
     if not full_normal:
-        df_train, df_test = train_test_split(df_features_nonan)
+        df_train, df_test = train_test_split(df_features)
     else:
-        df_train = df_features_nonan
-        df_test = df_features_collision_nonan
+        df_train = df_features
+        df_test = df_features_collision
         
     X_train = df_train.drop(["label", "start", "end"], axis=1)
     y_train = df_train["label"]
@@ -205,17 +200,16 @@ def get_train_test_data(df_features, df_features_collision, normalized=True, ful
         selected_features = X_train.columns.values[lasso.get_support()]
         X_train = X_train[selected_features].copy()
 
-        # Labels
-        # num_classes = len(set(y_train))
-        # y_train_categorical = tf.keras.utils.to_categorical(y_train, num_classes=num_classes)
-
         # Test
         X_test = pd.DataFrame(selector_variance.transform(scaler.transform(X_test)),
                             columns=X_test.columns.values[selector_variance.get_support()])
         X_test.drop(corr_features, inplace=True, axis=1)
         X_test = X_test[selected_features].copy()
-
-        # num_classes = len(y_train_categorical[0])
+        
+    if get_categorical:
+        num_classes = len(set(y_train))
+        y_train_categorical = tf.keras.utils.to_categorical(y_train, num_classes=num_classes)
+        return X_train, y_train, X_test, y_test, y_train_categorical
     
     return X_train, y_train, X_test, y_test, df_test
 

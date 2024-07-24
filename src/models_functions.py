@@ -9,7 +9,7 @@ from dataset import *
 from plots import *
 from metrics import *
 
-def get_dataframes(root, file_name, recording, freq, features_folder=None):
+def get_dataframes(root, file_name, recording, freq, features_folder=None, get_action2int=False):
     # print the arguments
     fp_csv = [os.path.join(root, f"rec{r}{file_name}{freq}s.csv") for r in recording]
     fp_meta = [os.path.join(root, f"rec{r}{file_name}{freq}s.metadata") for r in recording]
@@ -19,7 +19,13 @@ def get_dataframes(root, file_name, recording, freq, features_folder=None):
     df_features = get_features_ts("statistical", df_action, df_meta, frequency, action2int, features_folder)
     print("--- %s seconds ---" % (time.time() - start_time))
     
-    return df_features, df, df_action
+    df_features.isnull().values.any()
+    #df_features_nonan = df_features.drop((df_features.columns[df_features.isna().any()].tolist()), axis=1)
+    df_features_nonan = df_features.fillna(0)
+    
+    if get_action2int:
+        return df_features_nonan, df, df_action, action2int
+    return df_features_nonan, df, df_action
 
 def get_collisions(recording, root):
     xls = pd.ExcelFile(os.path.join(root, "20220811_collisions_timestamp.xlsx"))
