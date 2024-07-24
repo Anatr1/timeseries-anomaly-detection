@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from sklearn.metrics import precision_recall_curve
+from sklearn.preprocessing import StandardScaler
 
 from dataset import *
 from plots import *
@@ -122,3 +123,35 @@ def get_statistics(X_test, y_collisions_true, classifier, df_test, freq, thresho
     print(f"Anomalies detected with best threshold: {y_collisions_predict_best}")
     print(f"\n\t-------------------------------------------------------------------------------------\n")
     return df_test
+
+def reshape_data(X_train, y_train, X_test, y_test, time_steps=100):
+    # Convert to numpy arrays if they're not already
+    X_train = np.array(X_train)
+    y_train = np.array(y_train)
+    X_test = np.array(X_test)
+    y_test = np.array(y_test)
+
+    # Normalize the data
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+    print("Normalization completed")
+
+    # Create sliding windows
+    def create_sequences(X, y, time_steps=100):
+        Xs, ys = [], []
+        for i in range(len(X) - time_steps):
+            Xs.append(X[i:(i + time_steps)])
+            ys.append(y[i + time_steps])
+        return np.array(Xs), np.array(ys)
+
+    X_train_seq, y_train_seq = create_sequences(X_train_scaled, y_train, time_steps)
+    X_test_seq, y_test_seq = create_sequences(X_test_scaled, y_test, time_steps)
+    print("Sliding windows created")
+
+    # Reshape the data for XGBoost
+    X_train_reshaped = X_train_seq.reshape(X_train_seq.shape[0], -1)
+    X_test_reshaped = X_test_seq.reshape(X_test_seq.shape[0], -1)
+    print("Data reshaped for XGBoost")
+    
+    return X_train_reshaped, y_train_seq, X_test_reshaped, y_test_seq
