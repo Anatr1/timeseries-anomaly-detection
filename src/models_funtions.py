@@ -2,8 +2,7 @@ import time
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import tensorflow as tf
-from sklearn.metrics import precision_recall_curve
+from sklearn.metrics import precision_recall_curve, roc_auc_score
 
 from dataset import *
 from plots import *
@@ -112,6 +111,7 @@ def get_statistics(X_test, y_collisions_true, classifier, df_test, freq, thresho
     
     best_threshold, best_f1, best_precision, best_recall = find_best_threshold(y_collisions_true, anomaly_score)
     print(f"Best threshold: {best_threshold:.4f} | F1 Score: {best_f1:.4f} | Precision: {best_precision:.4f} | Recall: {best_recall:.4f}")
-    
+    y_collisions_predict_best = sum(anomaly_score >= best_threshold)
+    print(f"Anomalies detected with best threshold: {y_collisions_predict_best}")
     print(f"\n\t-------------------------------------------------------------------------------------\n")
     return df_test

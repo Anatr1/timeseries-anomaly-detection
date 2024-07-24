@@ -1,4 +1,3 @@
-import time
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 import tsfel
@@ -207,8 +206,8 @@ def get_train_test_data(df_features, df_features_collision, normalized=True, ful
         X_train = X_train[selected_features].copy()
 
         # Labels
-        num_classes = len(set(y_train))
-        y_train_categorical = tf.keras.utils.to_categorical(y_train, num_classes=num_classes)
+        # num_classes = len(set(y_train))
+        # y_train_categorical = tf.keras.utils.to_categorical(y_train, num_classes=num_classes)
 
         # Test
         X_test = pd.DataFrame(selector_variance.transform(scaler.transform(X_test)),
@@ -216,7 +215,7 @@ def get_train_test_data(df_features, df_features_collision, normalized=True, ful
         X_test.drop(corr_features, inplace=True, axis=1)
         X_test = X_test[selected_features].copy()
 
-        num_classes = len(y_train_categorical[0])
+        # num_classes = len(y_train_categorical[0])
     
     return X_train, y_train, X_test, y_test, df_test
 

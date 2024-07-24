@@ -137,7 +137,7 @@ def plot_anomalies(anomaly_scores, freq, threshold):
 
     plt.colorbar(scatter, label='Anomaly Score')
     plt.axhline(y=threshold, color='g', linestyle='--', label='Threshold')
-    plt.title(f'Anomaly Scores from LSTMED at frequency {freq}')
+    plt.title(f'Anomaly Scores at frequency {freq}')
     plt.xlabel('Sample Index')
     plt.ylabel('Anomaly Score')
     plt.legend()
@@ -148,17 +148,8 @@ def plot_anomalies(anomaly_scores, freq, threshold):
 
 def plot_anomalies_true_and_predicted(df, df_action, collisions_zones, df_predicted_zones, title="Some signals", saveplot=False):
     fig = go.Figure()
-    signals = [
-        # "sensor_id1_AngY",
-        # "sensor_id2_AngX",
-        # "sensor_id5_AngY",
-        # "sensor_id4_AccZ",
-        # "sensor_id4_AngX",
-        # "machine_nameKuka Robot_power"
-    ]
+    signals = []
 
-    # signals = df.columns
-    
     collisions_zones = convert_to_df(collisions_zones)
     
     start = df.index[0]
@@ -166,64 +157,74 @@ def plot_anomalies_true_and_predicted(df, df_action, collisions_zones, df_predic
     duration = 3600 * 3  # seconds
     time_delta = df_reduced.index - start
     df_interval = df_reduced[time_delta.total_seconds() <= duration]
-    j = 0
 
-    # Leveraging plotly express
-    n_colors = len(signals)
-    colors = px.colors.sample_colorscale("greys", [n/(n_colors -1) for n in range(n_colors)])  # From continuous colormap
-    colors = px.colors.qualitative.Set2  # From discrete colormap, see https://plotly.com/python/discrete-color/
-    df_signals = df_interval[signals].select_dtypes(['number'])
-    df_signals = df_signals / df_signals.max()
-    fig = px.line(df_signals, x=df_signals.index, y=df_signals.columns, color_discrete_sequence=colors)
+    # Plot signals
+    if signals:
+        df_signals = df_interval[signals].select_dtypes(['number'])
+        df_signals = df_signals / df_signals.max()
+        for col in df_signals.columns:
+            fig.add_trace(go.Scatter(x=df_signals.index, y=df_signals[col], mode='lines', name=col))
 
-    # Leveraging plotly graph object
+    # Plot actions
     colors_action = px.colors.qualitative.Antique
-    j = 0
-    for action in df_action.loc[df_interval.index].action.unique():
+    for j, action in enumerate(df_action.loc[df_interval.index].action.unique()):
         df_action_interval = df_action.loc[df_interval.index]
         df_action_single_action = df_action_interval[df_action_interval['action'] == action]
         fig.add_trace(go.Scatter(
             x=df_action_single_action.index,
-            y=[-0.3] * len(df_action_single_action.index),
+            y=[0] * len(df_action_single_action.index),
             line_shape="hv",
             line=dict(color=colors_action[j % len(colors_action)], width=2.5),
             name=action))
-        j += 1
 
-    # Highlight collision zones
+    # Highlight labeled collision zones at the bottom
     for _, row in collisions_zones.iterrows():
-        fig.add_vrect(
+        fig.add_shape(
+            type="rect",
             x0=row['start'], x1=row['end'],
-            fillcolor="blue", opacity=0.3,
+            y0=-1.0, y1=-0.0,
+            fillcolor="blue", opacity=0.5,
             layer="below", line_width=0,
         )
-    
-    # Highlight predicted collision zones
+
+    # Highlight predicted collision zones at the top
     for _, row in df_predicted_zones.iterrows():
         if row['is_collision'] == 1:
-            fig.add_vrect(
+            fig.add_shape(
+                type="rect",
                 x0=row['start'], x1=row['end'],
-                fillcolor="red", opacity=0.3,
+                y0=0.0, y1=1.0,
+                fillcolor="red", opacity=0.5,
                 layer="below", line_width=0,
             )
 
+    # Add legend for labeled and predicted anomalies
+    fig.add_trace(go.Scatter(
+        x=[None], y=[None], mode='markers',
+        marker=dict(size=10, color='blue'),
+        legendgroup="labeled", showlegend=True, name="Labeled Anomalies"
+    ))
+    fig.add_trace(go.Scatter(
+        x=[None], y=[None], mode='markers',
+        marker=dict(size=10, color='red'),
+        legendgroup="predicted", showlegend=True, name="Predicted Anomalies"
+    ))
+
     fig.update_layout(
-    title=title,
-    xaxis_title="Time",
-    yaxis_title="",
-    legend_title="Legend",
-    font=dict(
-        family="Courier New, monospace",
-        size=12,
-        color="Black"
+        title=title,
+        xaxis_title="Time",
+        yaxis_title="",
+        legend_title="Legend",
+        font=dict(family="Courier New, monospace", size=12, color="Black"),
+        yaxis=dict(range=[-1, 1]),
+        showlegend=True
     )
-    )
+
     fig.show()
     
     if saveplot:
         fig.write_html(f"../plots/{title}.html")
-        #fig.write_image(f"../plots/{title}.png")
-        print(f"Plot saved in ../plots/{title}.html and ../plots/{title}.png")
+        print(f"Plot saved in ../plots/{title}.html")
     
 def plot_roc_curve(true_labels, anomaly_scores):
     # Ensure y_true is a numpy array if it's a DataFrame column
