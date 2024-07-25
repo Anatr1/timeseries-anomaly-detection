@@ -165,3 +165,4 @@ models_output/
 features/
 test_model.ipynb
 content/
+.vscode/
