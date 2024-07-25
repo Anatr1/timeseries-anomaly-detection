@@ -3,19 +3,40 @@
 
 ## Group Members
 - s317661 Tcaciuc Claudiu Constantin
-- Gabriele Tomatis
-- Federico Mustich
+- s313848 Gabriele Tomatis
+- s287345 Federico Mustich
+
+## Paper
+[Machine Learning in Applications FP01 - 2024/14 Project Report]
 
 ## How to run the code
-Clone the repository and create a virtual environment, then install the following libraries:
-- numpy
-- pandas==1.5.3
-- matplotlib
-- seaborn
-- scikit-learn
-- plotly
-- tsfel
-- tensorflow
-- ... (to be completed)
+Clone the repository and create a virtual environment, then install libraries from the `requirements.txt` file.
 
-and run the cells in the notebook `main.ipynb`.
+Each notebook is self-contained and can be run independently. The notebooks are organized as follows:
+- data preprocessing
+- model training
+- model evaluation
+
+for each model to select the frequency of the data to use, you can change the variables `freq` inside the 3rd cell of each notebook.
+
+## Models
+The models we trained, that can be found in the `src` folder, are:
+- Bayesian MLP
+- Random Forest
+- Isolation Forest
+- Autoencoder
+- LSTM-AD
+- LSTM-AE
+- RNN-EBM
+- DAGMM
+- XGBoost (only implmented, but too heavy to run on our machines)
+
+## Training Environment
+- CPU: Ryzen 7 5800X 8-core 16-thread 3.8GHz
+- GPU: NVIDIA RTX 3060 12GB
+- RAM: 32GB DDR4 3200MHz
+- OS: Windows 11
+- Python 3.11.2
+
+## Test Results
+Test Results can be found in the `.\src\models_html\` folder in the form of HTML files separated by frequency and model.
