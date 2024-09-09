@@ -7,10 +7,12 @@
 - s287345 Federico Mustich
 
 ## Paper
-[Machine Learning in Applications FP01 - 2024/14 Project Report]
+[Machine Learning in Applications FP01 - 2024/14 Project Report](Paper_FP01_2024_14.pdf)
 
 ## How to run the code
 Clone the repository and create a virtual environment, then install libraries from the `requirements.txt` file.
+
+The Dataset folder must be placed in the root of the project. as `.\dataset\`
 
 Each notebook is self-contained and can be run independently. The notebooks are organized as follows:
 - data preprocessing
