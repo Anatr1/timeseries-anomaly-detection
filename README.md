@@ -1,6 +1,5 @@
 # Timeseries Anomaly Detection
 *Machine Learning in Applications - FP01 - 2024/14*
-## Project Title:
 ## Evaluating State-of-the-Art Models for Unsupervised Collision Detection in Industrial Robot Time Series
 
 ## Authors:
