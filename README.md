@@ -2,6 +2,8 @@
 *Machine Learning in Applications - FP01 - 2024/14*
 ## Evaluating State-of-the-Art Models for Unsupervised Collision Detection in Industrial Robot Time Series
 
+![](figures/plot.png)
+
 ## Authors:
 - Mustich Federico
 - Tcaciuc Claudiu Constantin
